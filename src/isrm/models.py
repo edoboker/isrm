@@ -122,26 +122,32 @@ class EvidenceBundle(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Judge output
+# Evaluator output
 # ---------------------------------------------------------------------------
 
 
-class JudgeFinding(BaseModel):
-    """One risk finding produced by the judge for a specific dimension."""
+class EvaluatedFinding(BaseModel):
+    """Risk finding produced by a per-collector evaluator."""
 
-    dimension: str
-    score_contribution: int = Field(ge=0, le=100)
+    collector: str
+    score: int = Field(ge=0, le=100)
     explanation: str
     data_gap: bool = False
+    confidence: int = Field(ge=0, le=100)
+
+
+# ---------------------------------------------------------------------------
+# Final report
+# ---------------------------------------------------------------------------
 
 
 class RiskReport(BaseModel):
-    """Final structured risk report produced by the judge."""
+    """Final structured risk report."""
 
     target: str
     score: int = Field(ge=0, le=100)
     label: RiskLabel
-    findings: list[JudgeFinding] = Field(default_factory=list)
+    findings: list[EvaluatedFinding] = Field(default_factory=list)
     rationale: str
     assumptions: list[str] = Field(default_factory=list)
     data_gaps: list[str] = Field(default_factory=list)

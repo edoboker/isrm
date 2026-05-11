@@ -45,17 +45,19 @@ def render_terminal(report: RiskReport) -> None:
 
     # Findings table
     if report.findings:
-        table = Table(title="Findings by Dimension", box=box.SIMPLE_HEAVY, show_lines=True)
-        table.add_column("Dimension", style="bold")
+        table = Table(title="Findings by Collector", box=box.SIMPLE_HEAVY, show_lines=True)
+        table.add_column("Collector", style="bold")
         table.add_column("Score", justify="right")
+        table.add_column("Confidence", justify="right")
         table.add_column("Data Gap", justify="center")
         table.add_column("Explanation")
 
         for finding in report.findings:
             gap_marker = "[yellow]YES[/yellow]" if finding.data_gap else "no"
             table.add_row(
-                finding.dimension,
-                str(finding.score_contribution),
+                finding.collector,
+                str(finding.score),
+                f"{finding.confidence}%",
                 gap_marker,
                 finding.explanation,
             )
