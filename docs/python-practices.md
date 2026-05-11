@@ -26,23 +26,12 @@ Standards for all Python code in this repository.
 
 ## Style
 
-- **PEP 8**, enforced by `ruff`. Max line length: **100**.
-- All public functions, methods, and classes carry **type annotations**.
-- Docstrings on all public APIs using **Google style**:
-  ```python
-  def assess(target: str) -> RiskReport:
-      """Assess the risk of an external FQDN or URL.
+> **Currently suspended** — do not run ruff or mypy during development. Speed and delivery take priority. Style enforcement and type-checking will be re-enabled at a later milestone.
 
-      Args:
-          target: The FQDN or full URL to assess.
-
-      Returns:
-          A RiskReport with composite score and per-dimension findings.
-
-      Raises:
-          ValueError: If target is not a valid FQDN or URL.
-      """
-  ```
+Target conventions (enforced later):
+- PEP 8, ruff, max line length 100.
+- Type annotations on all public functions and classes.
+- Google-style docstrings on public APIs.
 
 ---
 
@@ -64,40 +53,26 @@ Standards for all Python code in this repository.
 
 ## Testing
 
-- **pytest**. Test files mirror the source layout under `tests/`:
-  ```
-  isrm/assess/collectors/dns.py  →  tests/assess/collectors/test_dns.py
-  ```
-- Mock all external calls (network, APIs, Claude SDK) in unit tests using `pytest-mock` or `unittest.mock`.
-- Every collector and scorer module must have at least one unit test covering the happy path and one covering the `DATA_UNAVAILABLE` fallback.
+> **Currently suspended** — do not write or run tests during development. Tests will be added at a later milestone once the core pipeline stabilizes.
+
+Target conventions (enforced later):
+- pytest, mirroring source layout under `tests/`.
+- Mock all external calls (network, APIs, LLM SDK).
 
 ---
 
 ## Dependencies
 
 - Managed with **uv**. Never add a runtime or dev dependency without updating `pyproject.toml`.
-- Pin the minimum required version, not an exact version, unless a specific version is required for a known reason.
 
 ---
 
 ## Project Commands
 
 ```bash
-# Install all dependencies (including dev)
+# Install all dependencies
 uv sync --all-extras
 
-# Run tests
-uv run pytest
-
-# Run a single test
-uv run pytest tests/assess/collectors/test_dns.py::test_resolve_a_record
-
-# Lint
-uv run ruff check .
-
-# Type-check
-uv run mypy isrm/
-
 # Run the CLI
-uv run isrm assess api.stripe.com
+uv run isrm assess https://api.example.com
 ```
