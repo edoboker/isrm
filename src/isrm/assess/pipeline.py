@@ -6,6 +6,7 @@ import logging
 from urllib.parse import urlparse
 
 from isrm.assess.collectors.http import collect_http
+from isrm.assess.collectors.threat_history import collect_threat_history
 from isrm.assess.collectors.tls import collect_tls
 from isrm.assess.collectors.virustotal import collect_virustotal
 from isrm.assess.evaluators import evaluate
@@ -45,6 +46,9 @@ def run_assessment(url: str, settings: Settings) -> RiskReport:
 
     logger.info("Running HTTP collector")
     collector_results.append(collect_http(target.url))
+
+    logger.info("Running threat-history collector")
+    collector_results.append(collect_threat_history(target.hostname, settings))
 
     logger.info("Running evaluators")
     findings = []

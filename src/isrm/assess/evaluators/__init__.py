@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from isrm.assess.evaluators.http import evaluate_http
+from isrm.assess.evaluators.threat_history import evaluate_threat_history
 from isrm.assess.evaluators.tls import evaluate_tls
 from isrm.assess.evaluators.virustotal import evaluate_virustotal
 from isrm.config import Settings
@@ -16,6 +17,7 @@ _REGISTRY = {
     "tls": evaluate_tls,
     "virustotal": evaluate_virustotal,
     "http": evaluate_http,
+    "threat_history": evaluate_threat_history,
 }
 
 
