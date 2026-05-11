@@ -86,7 +86,56 @@ class HTTPEvidence(BaseModel):
 # Collector result wrapper
 # ---------------------------------------------------------------------------
 
-EvidencePayload = Union[TLSEvidence, VirusTotalEvidence, HTTPEvidence]
+class EvidenceScope(str, enum.Enum):
+    """How closely a source's evidence applies to the assessed target."""
+
+    EXACT_URL = "exact_url"
+    EXACT_FQDN = "exact_fqdn"
+    SAME_ROUTE_OR_API = "same_route_or_api"
+    SAME_SERVICE = "same_service"
+    SAME_VENDOR = "same_vendor"
+    BRAND_IMPERSONATION = "brand_impersonation"
+    UNRELATED = "unrelated"
+
+    def severity(self) -> int:
+        """Lower number = tighter/more relevant scope."""
+        _order = [
+            EvidenceScope.EXACT_URL,
+            EvidenceScope.EXACT_FQDN,
+            EvidenceScope.SAME_ROUTE_OR_API,
+            EvidenceScope.SAME_SERVICE,
+            EvidenceScope.SAME_VENDOR,
+            EvidenceScope.BRAND_IMPERSONATION,
+            EvidenceScope.UNRELATED,
+        ]
+        return _order.index(self)
+
+
+class ThreatHistorySource(BaseModel):
+    """A single source found during threat-history research."""
+
+    url: str
+    title: str | None = None
+    source_type: str  # e.g. "malware_report", "ioc_feed", "advisory", "news", "social"
+    claim: str
+    credibility: str  # "high" | "medium" | "low" | "unknown"
+    evidence_scope: EvidenceScope
+    scope_note: str  # brief reason for the scope classification
+
+
+class ThreatHistoryEvidence(BaseModel):
+    """Evidence collected by the threat-history research agent."""
+
+    abuse_found: bool
+    categories: list[str] = Field(default_factory=list)
+    summary: str
+    strongest_scope: EvidenceScope | None = None
+    sources: list[ThreatHistorySource] = Field(default_factory=list)
+    searched_queries: list[str] = Field(default_factory=list)
+    confidence: int = Field(ge=0, le=100)
+
+
+EvidencePayload = Union[TLSEvidence, VirusTotalEvidence, HTTPEvidence, ThreatHistoryEvidence]
 
 
 class CollectorResult(BaseModel):

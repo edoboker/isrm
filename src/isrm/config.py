@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     openrouter_model: str = "anthropic/claude-3.5-sonnet"
     openrouter_max_tokens: int | None = None
     virustotal_api_key: str | None = None
+    tavily_api_key: str | None = None
+    threat_history_model: str | None = None  # falls back to openrouter_model
+    threat_history_max_searches: int = 8
+    threat_history_max_results_per_search: int = 5
+    threat_history_search_depth: str = "basic"  # "basic" or "advanced"
 
 
 def load_settings() -> Settings:

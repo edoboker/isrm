@@ -7,6 +7,7 @@ import sys
 
 import click
 
+from isrm.assess.collectors.threat_history import collect_threat_history, _parse_hostname
 from isrm.assess.pipeline import run_assessment
 from isrm.assess.report import render_json, render_terminal
 from isrm.config import load_settings
@@ -57,3 +58,29 @@ def assess(url: str, as_json: bool, verbose: bool) -> None:
         click.echo(render_json(report))
     else:
         render_terminal(report)
+
+
+@main.command("research-threat-history")
+@click.argument("target")
+@click.option("-v", "--verbose", is_flag=True, default=False, help="Enable debug logging.")
+def research_threat_history(target: str, verbose: bool) -> None:
+    """Research public threat history for a hostname or URL."""
+    _configure_logging(verbose)
+
+    try:
+        settings = load_settings()
+    except Exception as exc:
+        click.echo(f"Configuration error: {exc}", err=True)
+        sys.exit(1)
+
+    hostname = _parse_hostname(target)
+    logger.info("Researching threat history for %s", hostname)
+
+    try:
+        result = collect_threat_history(hostname, settings)
+    except Exception as exc:
+        logger.debug("Unexpected error", exc_info=True)
+        click.echo(f"Research failed: {exc}", err=True)
+        sys.exit(1)
+
+    click.echo(result.model_dump_json(indent=2))

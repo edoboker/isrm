@@ -12,6 +12,8 @@ dependencies = [
     "pydantic-settings>=2.3",
     "rich>=13.7",
     "python-dotenv>=1.0",
+    "pydantic-ai>=0.0.14",
+    "tavily-python>=0.3",
 ]
 
 [project.scripts]
