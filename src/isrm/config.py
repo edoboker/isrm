@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     virustotal_api_key: str | None = None
     tavily_api_key: str | None = None
     threat_history_model: str | None = None  # falls back to openrouter_model
+    threat_history_max_tokens: int | None = None  # falls back to openrouter_max_tokens
     threat_history_max_searches: int = 8
     threat_history_max_results_per_search: int = 5
     threat_history_search_depth: str = "basic"  # "basic" or "advanced"

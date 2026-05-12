@@ -32,12 +32,14 @@ class _SearchDeps:
 
 def _build_agent(settings: Settings) -> Agent[_SearchDeps, ThreatHistoryEvidence]:
     model_name = settings.threat_history_model or settings.openrouter_model
+    max_tokens = settings.threat_history_max_tokens or settings.openrouter_max_tokens
     provider = OpenAIProvider(
         openai_client=AsyncOpenAI(
             api_key=settings.openrouter_api_key,
             base_url="https://openrouter.ai/api/v1",
         )
     )
+    model_settings = {"max_tokens": max_tokens} if max_tokens else {}
     model = OpenAIModel(model_name, provider=provider)
 
     agent: Agent[_SearchDeps, ThreatHistoryEvidence] = Agent(
@@ -45,6 +47,7 @@ def _build_agent(settings: Settings) -> Agent[_SearchDeps, ThreatHistoryEvidence
         output_type=ThreatHistoryEvidence,
         deps_type=_SearchDeps,
         system_prompt=_SYSTEM_PROMPT,
+        model_settings=model_settings or None,
     )
 
     @agent.tool
