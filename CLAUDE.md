@@ -15,11 +15,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Summary
 
-The assessment pipeline flows: `collectors → agent → scorer → report`.
+The assessment pipeline flows: `collectors → evaluators → judge → report`.
 
-- `isrm/assess/collectors/` — independent data collectors (DNS, WHOIS, TLS, HTTP, threat intel)
-- `isrm/assess/agent.py` — Claude SDK agentic enrichment (vendor research, data types, known issues)
-- `isrm/assess/scorer.py` — aggregates signals into a 0–100 composite score across 5 weighted dimensions
+- `isrm/assess/collectors/` — independent data collectors (TLS, HTTP, VirusTotal, threat_history)
+- `isrm/assess/evaluators/` — one LLM evaluator per collector, produces `EvaluatedFinding` (score 0–100)
+- `isrm/assess/judge.py` — LLM synthesizes `EvaluatedFinding` list into composite `RiskReport`
 - `isrm/assess/report.py` — Rich terminal output and JSON serialization
 - `isrm/models.py` — Pydantic v2 models shared across modules
 - `isrm/config.py` — Pydantic Settings loaded from env / `.env`
@@ -31,3 +31,5 @@ Don't assume. Don't hide confusion. Surface tradeoffs.
 Minimum code that solves the problem. Nothing speculative.
 3. Surgical Changes
 Touch only what you must. Clean up only your own mess.
+4. Git commits
+Never add "Co-Authored-By: Claude" or any AI attribution to commit messages.
