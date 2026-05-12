@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 def _normalize(url: str) -> AssessmentTarget:
+    if "://" not in url:
+        url = "https://" + url
     parsed = urlparse(url)
-    if not parsed.scheme:
-        raise ValueError(f"URL must include a scheme (e.g. https://): {url!r}")
     if not parsed.hostname:
         raise ValueError(f"Could not extract a hostname from URL: {url!r}")
     return AssessmentTarget(
@@ -48,7 +48,7 @@ def run_assessment(url: str, settings: Settings) -> RiskReport:
     collector_results.append(collect_http(target.url))
 
     logger.info("Running threat-history collector")
-    collector_results.append(collect_threat_history(target.hostname, settings))
+    collector_results.append(collect_threat_history(target.url, settings))
 
     logger.info("Running evaluators")
     findings = []

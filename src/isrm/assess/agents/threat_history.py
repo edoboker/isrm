@@ -80,11 +80,11 @@ def _build_agent(settings: Settings) -> Agent[_SearchDeps, ThreatHistoryEvidence
     return agent
 
 
-def run_agent(hostname: str, settings: Settings) -> ThreatHistoryEvidence:
-    """Run the threat-history research agent for a hostname.
+def run_agent(target: str, settings: Settings) -> ThreatHistoryEvidence:
+    """Run the threat-history research agent for a URL or hostname.
 
     Args:
-        hostname: The hostname (or FQDN) to research.
+        target: Full URL (e.g. https://api.example.com/v1/create) or bare hostname.
         settings: Application settings.
 
     Returns:
@@ -99,7 +99,7 @@ def run_agent(hostname: str, settings: Settings) -> ThreatHistoryEvidence:
     )
 
     result = agent.run_sync(
-        f"Research the public threat history for this domain: {hostname}",
+        f"Research the public threat history for: {target}",
         deps=deps,
     )
 

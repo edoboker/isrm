@@ -7,7 +7,7 @@ import sys
 
 import click
 
-from isrm.assess.collectors.threat_history import collect_threat_history, _parse_hostname
+from isrm.assess.collectors.threat_history import collect_threat_history
 from isrm.assess.pipeline import run_assessment
 from isrm.assess.report import render_json, render_terminal
 from isrm.config import load_settings
@@ -73,11 +73,10 @@ def research_threat_history(target: str, verbose: bool) -> None:
         click.echo(f"Configuration error: {exc}", err=True)
         sys.exit(1)
 
-    hostname = _parse_hostname(target)
-    logger.info("Researching threat history for %s", hostname)
+    logger.info("Researching threat history for %s", target)
 
     try:
-        result = collect_threat_history(hostname, settings)
+        result = collect_threat_history(target, settings)
     except Exception as exc:
         logger.debug("Unexpected error", exc_info=True)
         click.echo(f"Research failed: {exc}", err=True)

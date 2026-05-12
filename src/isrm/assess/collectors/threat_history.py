@@ -14,16 +14,18 @@ logger = logging.getLogger(__name__)
 _COLLECTOR_NAME = "threat_history"
 
 
-def collect_threat_history(hostname: str, settings: Settings) -> CollectorResult:
-    """Research public threat history for a hostname using the Pydantic AI agent.
+def collect_threat_history(target: str, settings: Settings) -> CollectorResult:
+    """Research public threat history for a URL or hostname using the Pydantic AI agent.
 
     Args:
-        hostname: Bare hostname or FQDN to research.
+        target: Full URL (e.g. https://api.example.com/v1/create) or bare hostname.
         settings: Application settings.
 
     Returns:
         A CollectorResult containing ThreatHistoryEvidence.
     """
+    hostname = _parse_hostname(target)
+
     if not settings.tavily_api_key:
         return CollectorResult(
             name=_COLLECTOR_NAME,
@@ -33,9 +35,9 @@ def collect_threat_history(hostname: str, settings: Settings) -> CollectorResult
         )
 
     try:
-        evidence = run_agent(hostname, settings)
+        evidence = run_agent(target, settings)
     except Exception as exc:
-        logger.warning("Threat-history agent failed for %s: %s", hostname, exc)
+        logger.warning("Threat-history agent failed for %s: %s", target, exc)
         return CollectorResult(
             name=_COLLECTOR_NAME,
             status=CollectorStatus.FAILED,
