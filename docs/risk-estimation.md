@@ -13,8 +13,22 @@ Given a URL, isrm runs a set of collectors, then passes all evidence to an LLM j
 | `tls` | Certificate validity, expiry, hostname match, chain trust, TLS version |
 | `http` | HTTP posture: final URL, HTTPS enforcement, security headers |
 | `virustotal` | Threat reputation: malicious/suspicious detections, reputation score |
+| `threat_history` | Public abuse history via agentic web research (Pydantic AI + Tavily) |
 
-Each collector returns a status (`ok`, `partial`, `failed`, `data_unavailable`) and a summary. The judge produces one finding per collector.
+Each collector returns a status (`ok`, `partial`, `failed`, `data_unavailable`) and a summary. A dedicated evaluator converts each collector result into an `EvaluatedFinding` (score 0–100). The judge synthesizes all findings into the composite report.
+
+### Threat-history collector
+
+The `threat_history` collector runs an LLM agent that searches the web from narrowest to broadest scope (exact FQDN → service → vendor). Every source is tagged with an `evidence_scope` value. The evaluator scores by the tightest credible scope found:
+
+| Tightest scope | Score range |
+|----------------|-------------|
+| `exact_url` / `exact_fqdn` | 75–90 |
+| `same_route_or_api` | 55–74 |
+| `same_service` | 30–54 |
+| `same_vendor` | 15–29 |
+| `brand_impersonation` | 5–14 |
+| No abuse found | 0–10 |
 
 ---
 
@@ -31,8 +45,8 @@ Future phases will allow manual overrides per flagged collector (e.g. a CISO sup
 
 ## Scoring Model
 
-- Each finding has a `score_contribution` (0–100).
-- The judge produces an overall composite `score` (0–100) based on its reading of all findings.
+- Each collector result is scored 0–100 by its dedicated evaluator. The evaluator uses a focused LLM prompt with domain-specific scoring bands.
+- The judge receives pre-scored `EvaluatedFinding` objects and synthesizes them into a composite `score` (0–100). It considers interactions between findings (e.g. confirmed threat history amplifies infrastructure weaknesses) but does not re-score individual collectors.
 - Weighting logic lives in the judge prompt and may be refined over time.
 
 ### Risk label
@@ -59,12 +73,13 @@ RiskReport
   target: str
   score: int                    # 0–100 composite
   label: RiskLabel              # Low / Medium / High / Critical
-  findings: list[JudgeFinding]
-    JudgeFinding
-      dimension: str            # collector name, e.g. "tls"
-      score_contribution: int   # 0–100
+  findings: list[EvaluatedFinding]
+    EvaluatedFinding
+      collector: str            # collector name, e.g. "tls"
+      score: int                # 0–100, set by the per-collector evaluator
       explanation: str
       data_gap: bool
+      confidence: int           # 0–100
   rationale: str
   assumptions: list[str]
   data_gaps: list[str]

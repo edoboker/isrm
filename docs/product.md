@@ -25,14 +25,15 @@ Reports must be structured, auditable, and explainable.
 
 ## Architecture Principle
 
-The system has four major phases:
+The system has five major phases:
 
-CLI → pipeline → collectors → judge
+CLI → pipeline → collectors → evaluators → judge
 
 - CLI handles user input and output mode.
 - Pipeline orchestrates assessment execution.
 - Collectors gather deterministic or agentic evidence.
-- Judge uses an LLM to convert heterogeneous evidence into a structured risk report.
+- Evaluators score each collector's output independently using focused LLM prompts (one evaluator per collector).
+- Judge synthesizes pre-scored findings into a composite risk report. It does not re-score individual collectors.
 
 ## Roadmap
 
@@ -40,15 +41,17 @@ CLI → pipeline → collectors → judge
 
 Given a URL (with scheme, e.g. `https://api.example.com`), produce a structured risk assessment from collected evidence.
 
-Phase 1a (current):
+Phase 1a (complete):
 - TLS/certificate posture
 - Threat reputation via VirusTotal
 - HTTP posture (headers, redirects)
-- LLM judge (OpenRouter) producing a structured score and rationale
+- Threat-history research via agentic collector (Pydantic AI + Tavily)
+- Per-collector evaluators scoring each finding independently
+- LLM judge (OpenRouter) synthesizing scored findings into a composite report
 
-Phase 1b (later):
+Phase 1b (next):
 - Support bare FQDN input without scheme
-- Additional collectors (DNS, WHOIS, agentic vendor research)
+- Additional collectors (DNS, WHOIS)
 
 ### Phase 2 — Attack Vectors
 

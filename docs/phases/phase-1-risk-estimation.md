@@ -11,7 +11,7 @@ Note: bare FQDN input (without scheme) is not supported in Phase 1. The target m
 This phase implements the core product loop:
 
 ```text
-CLI → pipeline → collectors → judge → report
+CLI → pipeline → collectors → evaluators → judge → report
 ```
 
 ## Product Context
@@ -48,15 +48,20 @@ The command should:
 6. Render a human-readable terminal report.
 7. Support JSON output.
 
-### Initial collectors
+### Collectors
 
-Implement these collectors first:
+Implemented collectors:
 
 1. TLS / certificate collector
 2. VirusTotal reputation collector
 3. Basic HTTP collector
+4. Threat-history research collector (agentic: Pydantic AI + Tavily web search)
 
-The architecture must allow more collectors later, including agentic collectors that return long-form textual evidence.
+The architecture supports additional collectors. Each new collector automatically gets an evaluator and feeds into the judge.
+
+### Evaluators
+
+Each collector has a dedicated evaluator that converts its raw output into an `EvaluatedFinding` (score 0–100, explanation, data_gap, confidence) using a focused LLM prompt. Evaluators are registered in `src/isrm/assess/evaluators/__init__.py`. Unknown collectors fall back to a conservative score=50, data_gap=True finding.
 
 ### Out of scope
 
@@ -75,8 +80,6 @@ Do not implement:
 
 ## Architecture
 
-Use this architecture:
-
 ```text
 cli.py
   ↓
@@ -84,7 +87,9 @@ pipeline.py
   ↓
 collectors/*
   ↓
-judge.py
+evaluators/*   (one LLM call per collector → EvaluatedFinding)
+  ↓
+judge.py       (synthesizes findings → RiskReport)
   ↓
 report.py
 ```
@@ -174,7 +179,10 @@ CollectorStatus
 TLSEvidence
 VirusTotalEvidence
 HTTPEvidence
-JudgeFinding
+ThreatHistoryEvidence
+ThreatHistorySource
+EvidenceScope
+EvaluatedFinding
 RiskReport
 RiskLabel
 ```
@@ -305,28 +313,20 @@ Do not over-invest in fingerprinting in Phase 1.
 
 ## LLM Judge Contract
 
-The LLM judge receives the `EvidenceBundle` and returns a `RiskReport`.
+The LLM judge receives a list of `EvaluatedFinding` objects (one per collector) and returns a `RiskReport`. It does not receive raw collector evidence and does not re-score individual findings — it accepts evaluator scores as given.
 
-The prompt should instruct the judge to behave as a security risk assessor for external FQDN access from cloud workloads.
-
-The judge should evaluate at least these dimensions:
-
-1. Threat reputation
-2. Vendor/service confidence
-3. Data-flow and usage risk
-4. Infrastructure posture
-5. Missing-data risk
-
-The judge may infer risk from textual evidence, but every inference must be explained.
-
-The judge must treat missing data conservatively.
+The judge's responsibilities:
+1. Produce a composite score (0–100) considering interactions between findings (e.g. a high threat-history score amplifies infrastructure weaknesses).
+2. Produce a risk label.
+3. Write a concise rationale.
+4. List assumptions.
+5. List data gaps (findings where `data_gap=true`) and their implications.
+6. Produce an overall confidence score.
 
 Required judge behavior:
-
-- do not ignore failed collectors
-- do not treat missing data as safe
-- do not invent facts not present in evidence
-- distinguish observed facts from assumptions
+- do not re-score individual collector findings
+- do not ignore data gaps
+- consider amplifying interactions between findings
 - produce valid structured output
 - keep rationale concise but auditable
 
