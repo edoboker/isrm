@@ -67,7 +67,7 @@ Allowed values:
   brand_impersonation — evidence is about impersonation of the brand, not abuse of the actual service
   unrelated           — evidence does not materially apply to the target
 
-Scope examples for target api.stripe.com/v1/charges:
+Scope examples for target api.stripe.com/v1/charges (this is an example only - do NOT refere to stripe in searches!):
   "This exact endpoint was seen as a C2 target"              → exact_url
   "api.stripe.com was in an IOC feed"                        → exact_fqdn
   "Stripe API was abused in a fraud campaign"                → same_service
